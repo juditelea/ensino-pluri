@@ -6,15 +6,6 @@ use Illuminate\Http\Request;
 
 class MatriculaController extends Controller
 {
-    protected $request;
-    public function __construct(Request $request)
-    {
-        $this->request = $request;
-
-        $this->middleware('auth')->except([
-            'index', 'show'
-            ]);
-    }
     /**
      * Display a listing of the resource.
      *
@@ -22,7 +13,7 @@ class MatriculaController extends Controller
      */
     public function index()
     {
-        return view('admin.pages.matriculas.index');
+        //
     }
 
     /**

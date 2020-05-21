@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUpdateAlunoRequest;
+use App\Models\Aluno;
 use Illuminate\Http\Request;
 
 class AlunoController extends Controller
 {
 
     protected $request;
-    public function __construct(Request $request)
+    public function __construct(Request $request, Aluno $aluno)
     {
         //dd($request);
         $this->request = $request;
+        $this->repository =  $aluno;
 
         /*$this->middleware('auth')->only([
             'create', 'store',
-            ]);*/
+            ]);
         $this->middleware('auth')->except([
             'index', 'show'
-            ]);
+            ]);*/
     }
     /**
      * Display a listing of the resource.
@@ -27,8 +30,11 @@ class AlunoController extends Controller
      */
     public function index()
     {
+        $alunos = Aluno::orderby('name')->paginate();
 
-        return view('admin.pages.alunos.index');
+        return view('admin.pages.alunos.index', [
+            'alunos' => $alunos,
+        ]);
         
     }
 
@@ -39,7 +45,7 @@ class AlunoController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.pages.alunos.create');
     }
 
     /**
@@ -50,7 +56,13 @@ class AlunoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->all();
+        $date = str_replace('/', '-', $request->birthdate);
+        $data['birthdate'] = date("Y-m-d", strtotime($date));
+        
+        Aluno::create($data);
+       
+        return redirect()->route('alunos.index');
     }
 
     /**
@@ -61,7 +73,12 @@ class AlunoController extends Controller
      */
     public function show($id)
     {
-        //
+        $aluno = $this->repository->where('id', $id)->first();
+        if (!$aluno)
+            return redirect()->back();
+        return view('admin.pages.alunos.show', [
+          'aluno' => $aluno
+        ]);
     }
 
     /**
@@ -72,7 +89,11 @@ class AlunoController extends Controller
      */
     public function edit($id)
     {
-        //
+        $aluno = $this->repository->where('id', $id)->first();
+        if (!$aluno)
+            return redirect()->back();
+
+        return view('admin.pages.alunos.edit', ['aluno' => $aluno]);
     }
 
     /**
@@ -84,7 +105,19 @@ class AlunoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+
+        if (!$aluno = $this->repository->find($id))
+            return redirect()->back();
+        
+        $data = $request->all();
+
+        $date = str_replace('/', '-', $request->birthdate);
+        $data['birthdate'] = date("Y-m-d", strtotime($date));
+    
+        $aluno->update($data);
+
+        return redirect()->route('alunos.index');
     }
 
     /**
@@ -95,6 +128,10 @@ class AlunoController extends Controller
      */
     public function destroy($id)
     {
-        //
+         $aluno = $this->repository->where('id', $id)->first();
+ 
+        $aluno->delete();
+ 
+        return redirect()->route('alunos.index');
     }
 }

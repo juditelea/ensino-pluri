@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUpdatecursoRequest;
+use App\Models\curso;
 use Illuminate\Http\Request;
 
-class CursoController extends Controller
+class cursoController extends Controller
 {
 
     protected $request;
-    public function __construct(Request $request)
+    public function __construct(Request $request, curso $curso)
     {
+        //dd($request);
         $this->request = $request;
+        $this->repository =  $curso;
 
-        $this->middleware('auth')->except([
-            'index', 'show'
-            ]);
     }
-
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +24,12 @@ class CursoController extends Controller
      */
     public function index()
     {
-        return view('admin.pages.cursos.index');
+        $cursos = curso::orderby('title')->paginate();
+
+        return view('admin.pages.cursos.index', [
+            'cursos' => $cursos,
+        ]);
+        
     }
 
     /**
@@ -34,7 +39,7 @@ class CursoController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.pages.cursos.create');
     }
 
     /**
@@ -45,7 +50,11 @@ class CursoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //$data = $request->all();
+        
+        curso::create($request->all());
+       
+        return redirect()->route('cursos.index');
     }
 
     /**
@@ -56,7 +65,13 @@ class CursoController extends Controller
      */
     public function show($id)
     {
-        //
+        $curso = $this->repository->where('id', $id)->first();
+        if (!$curso)
+            return redirect()->back();
+
+        return view('admin.pages.cursos.show', [
+          'curso' => $curso
+        ]);
     }
 
     /**
@@ -67,7 +82,11 @@ class CursoController extends Controller
      */
     public function edit($id)
     {
-        //
+        $curso = $this->repository->where('id', $id)->first();
+        if (!$curso)
+            return redirect()->back();
+
+        return view('admin.pages.cursos.edit', ['curso' => $curso]);
     }
 
     /**
@@ -79,7 +98,14 @@ class CursoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if (!$curso = $this->repository->find($id))
+            return redirect()->back();
+        
+        //$data = $request->all();
+        
+        $curso->update($request->all());
+
+        return redirect()->route('cursos.index');
     }
 
     /**
@@ -90,6 +116,10 @@ class CursoController extends Controller
      */
     public function destroy($id)
     {
-        //
+         $curso = $this->repository->where('id', $id)->first();
+ 
+        $curso->delete();
+ 
+        return redirect()->route('cursos.index');
     }
 }
